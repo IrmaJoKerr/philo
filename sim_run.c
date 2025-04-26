@@ -3,255 +3,400 @@
 /*                                                        :::      ::::::::   */
 /*   sim_run.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42.fr>                +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:37 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 17:14:53 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 21:07:30 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-// void	take_forks(t_philo *philo) // Renamed from ft_fork
+// void	handle_single_philosopher(t_philo *philo)
 // {
 // 	t_vars	*vars;
 
 // 	vars = philo->shared_vars;
-// 	if (vars->num_philosophers == 1)
-// 	{
-// 		pthread_mutex_lock(&vars->fork_mutexes[philo->left_fork]);
-// 		log_message(FORK, 0, 0); // Updated time calculation
-// 		usleep(vars->time_to_die * 1000);
-// 		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-// 		return ;
-// 	}
-// 	pthread_mutex_lock(&vars->fork_mutexes[philo->left_fork]);
-// 	print_philosopher_message(FORK, philo);
-// 	pthread_mutex_lock(&vars->fork_mutexes[philo->right_fork]);
-// 	print_philosopher_message(FORK, philo);
+// 	pthread_mutex_lock(&vars->skeuos[philo->left_fork]);
+// 	print_status(FORK, philo);
+// 	usleep(vars->time_to_die * 1000);
+// 	pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
 // }
-void take_forks(t_philo *philo)
+void	*handle_single_philosopher(t_philo *philo)
 {
-    t_vars *vars;
-    int first_fork, second_fork;
+	t_vars	*vars;
 
-    vars = philo->shared_vars;
-    // debug_print("Philo %d attempting to take forks at time %ld", 
-    //     philo->id + 1, current_time() - vars->start_time);
-    if (vars->num_philosophers == 1)
-    {
-        // Single philosopher case unchanged
-        pthread_mutex_lock(&vars->fork_mutexes[philo->left_fork]);
-        print_philosopher_message(FORK, philo);  // Use proper timestamp and ID
-        usleep(vars->time_to_die * 1000);
-        pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-        return;
-    }
+	vars = philo->shared_vars;
+	pthread_mutex_lock(&vars->skeuos[philo->left_fork]);
+	print_status(FORK, philo);
+	usleep(vars->time_to_die * 1000);
+	pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+	return (NULL);
+}
 
-    // Determine fork acquisition order based on philosopher ID
+/**
+ * Determines the order in which philosophers should acquire forks
+ * Even philosophers: left fork first, right fork second
+ * Odd philosophers: right fork first, left fork second
+ * @param philo The philosopher
+ * @param first_fork Pointer to store the first fork index
+ * @param second_fork Pointer to store the second fork index
+ */
+void determine_fork_order(t_philo *philo, int *first_fork, int *second_fork)
+{
     if (philo->id % 2 == 0)
     {
-        first_fork = philo->left_fork;
-        second_fork = philo->right_fork;
+        *first_fork = philo->left_fork;
+        *second_fork = philo->right_fork;
     }
     else
     {
-        first_fork = philo->right_fork;
-        second_fork = philo->left_fork;
+        *first_fork = philo->right_fork;
+        *second_fork = philo->left_fork;
     }
+    debug_print("Philo %d assigned forks: first=%d, second=%d", 
+                philo->id + 1, *first_fork, *second_fork);
+}
 
-    // Lock first fork
-    pthread_mutex_lock(&vars->fork_mutexes[first_fork]);
-    print_philosopher_message(FORK, philo);
-    // debug_print("Philo %d acquired first fork %d at time %ld", 
-    //     philo->id + 1, first_fork, current_time() - vars->start_time);
+/**
+ * Attempts to acquire both forks needed for a philosopher to eat
+ * Uses asymmetric fork acquisition strategy to prevent deadlock
+ * Implements safety margin to prevent starvation
+ * @param philo The philosopher trying to acquire forks
+ */
+// void	grab_forks(t_philo *philo)
+// {
+// 	t_vars	*vars;
+// 	int		first_fork;
+// 	int		second_fork;
+// 	long	next_meal;
 
-    // Check if simulation ended after first fork acquisition
-    if (ft_mutex_death(philo))
+// 	vars = philo->shared_vars;
+// 	// if (vars->head_count == 1)
+// 	// {
+// 	// 	handle_single_philosopher(philo);
+// 	// 	return ;
+// 	// }
+// 	determine_fork_order(philo, &first_fork, &second_fork);
+// 	pthread_mutex_lock(&vars->skeuos[first_fork]);
+// 	print_status(FORK, philo);
+// 	if (run_atropos(philo))
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// 		return ;
+// 	}
+// 	pthread_mutex_lock(&vars->atropos);
+// 	next_meal = philo->next_meal_time;
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	if (curr_time() > next_meal - 500)
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// 		usleep(200);
+// 		return ;
+// 	}
+// 	pthread_mutex_lock(&vars->skeuos[second_fork]);
+// 	print_status(FORK, philo);
+// }
+void grab_forks(t_philo *philo)
+{
+    t_vars *vars;
+    int first_fork;
+    int second_fork;
+    long next_meal;
+
+    vars = philo->shared_vars;
+    debug_print("Philo %d attempting to take forks at time %ld", 
+                philo->id + 1, curr_time() - vars->start_time);
+
+    determine_fork_order(philo, &first_fork, &second_fork);
+    
+    debug_print("Philo %d trying to acquire first fork %d", philo->id + 1, first_fork);
+    pthread_mutex_lock(&vars->skeuos[first_fork]);
+    debug_print("Philo %d acquired first fork %d at time %ld", 
+                philo->id + 1, first_fork, curr_time() - vars->start_time);
+    
+    print_status(FORK, philo);
+    
+    if (run_atropos(philo))
     {
-        pthread_mutex_unlock(&vars->fork_mutexes[first_fork]);
+        debug_print("Philo %d releasing fork - simulation ended", philo->id + 1);
+        pthread_mutex_unlock(&vars->skeuos[first_fork]);
         return;
     }
     
-    // NEW: Check if death is imminent before taking second fork
-    pthread_mutex_lock(&vars->death_mutex);
-    long next_meal = philo->next_meal_time;
-    pthread_mutex_unlock(&vars->death_mutex);
+    pthread_mutex_lock(&vars->atropos);
+    next_meal = philo->next_meal_time;
+    pthread_mutex_unlock(&vars->atropos);
     
-    if (current_time() > next_meal - 500) // 200ms safety margin
+    long current = curr_time();
+    debug_print("Philo %d safety check: current=%ld, next_meal=%ld, diff=%ld, threshold=%ld", 
+                philo->id + 1, current - vars->start_time, 
+                next_meal - vars->start_time,
+                next_meal - current, 500);
+                
+    if (current > next_meal - 500)
     {
-        // debug_print("Philo %d releasing first fork - death too close (margin: %ld ms)", 
-        //     philo->id + 1, next_meal - current_time());
-        pthread_mutex_unlock(&vars->fork_mutexes[first_fork]);
-        usleep(200); // Small delay before retrying
-        return; // Return to main loop to try again
+        debug_print("Philo %d releasing first fork - death too close (margin: %ld ms)", 
+                    philo->id + 1, next_meal - current);
+        pthread_mutex_unlock(&vars->skeuos[first_fork]);
+        usleep(200);
+        return;
     }
-
-    // Try to take second fork
-    pthread_mutex_lock(&vars->fork_mutexes[second_fork]);
-    print_philosopher_message(FORK, philo);
-    // debug_print("Philo %d acquired both forks (%d, %d) at time %ld", 
-    //         philo->id + 1, first_fork, second_fork, current_time() - vars->start_time);
+    
+    debug_print("Philo %d trying to acquire second fork %d", philo->id + 1, second_fork);
+    pthread_mutex_lock(&vars->skeuos[second_fork]);
+    debug_print("Philo %d acquired both forks (%d, %d) at time %ld", 
+                philo->id + 1, first_fork, second_fork, curr_time() - vars->start_time);
+    print_status(FORK, philo);
 }
 
-// void	start_eating(t_philo *philo) // Renamed from ft_eat
+// void	grab_forks(t_philo *philo)
+// {
+// 	t_vars	*vars;
+// 	int		first_fork;
+// 	int		second_fork;
+// 	long	next_meal;
+
+// 	vars = philo->shared_vars;
+// 	if (vars->head_count == 1)
+// 	{
+// 		handle_single_philosopher(philo);
+// 		return ;
+// 	}
+// 	if (philo->id % 2 == 0)
+// 	{
+// 		first_fork = philo->left_fork;
+// 		second_fork = philo->right_fork;
+// 	}
+// 	else
+// 	{
+// 		first_fork = philo->right_fork;
+// 		second_fork = philo->left_fork;
+// 	}
+// 	pthread_mutex_lock(&vars->skeuos[first_fork]);
+// 	print_status(FORK, philo);
+// 	if (run_atropos(philo))
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// 		return ;
+// 	}
+// 	pthread_mutex_lock(&vars->atropos);
+// 	next_meal = philo->next_meal_time;
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	if (curr_time() > next_meal - 500)
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// 		usleep(200);
+// 		return ;
+// 	}
+// 	pthread_mutex_lock(&vars->skeuos[second_fork]);
+// 	print_status(FORK, philo);
+// }
+
+//BACKUP BEFORE REFACTOR
+// void	grab_forks(t_philo *philo)
+// {
+// 	t_vars	*vars;
+// 	int		first_fork;
+// 	int		second_fork;
+// 	long	next_meal;
+
+// 	vars = philo->shared_vars;
+// 	if (vars->head_count == 1)
+// 	{
+// 		pthread_mutex_lock(&vars->skeuos[philo->left_fork]);
+// 		print_status(FORK, philo);
+// 		usleep(vars->time_to_die * 1000);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 		return ;
+// 	}
+// 	if (philo->id % 2 == 0)
+// 	{
+// 		first_fork = philo->left_fork;
+// 		second_fork = philo->right_fork;
+// 	}
+// 	else
+// 	{
+// 		first_fork = philo->right_fork;
+// 		second_fork = philo->left_fork;
+// 	}
+// 	pthread_mutex_lock(&vars->skeuos[first_fork]);
+// 	print_status(FORK, philo);
+// 	if (run_atropos(philo))
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// 		return ;
+// 	}
+// 	pthread_mutex_lock(&vars->atropos);
+// 	next_meal = philo->next_meal_time;
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	if (curr_time() > next_meal - 500)
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// 		usleep(200);
+// 		return ;
+// 	}
+// 	pthread_mutex_lock(&vars->skeuos[second_fork]);
+// 	print_status(FORK, philo);
+// }
+
+// void	eat_start(t_philo *philo)
 // {
 // 	t_vars	*vars;
 
 // 	vars = philo->shared_vars;
-// 	pthread_mutex_lock(&vars->death_mutex);
+// 	pthread_mutex_lock(&vars->atropos);
 // 	if (vars->is_dead)
 // 	{
-// 		pthread_mutex_unlock(&vars->death_mutex);
-// 		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-// 		pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
+// 		pthread_mutex_unlock(&vars->atropos);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
 // 		return ;
 // 	}
-// 	pthread_mutex_unlock(&vars->death_mutex);
-// 	print_philosopher_message(EAT, philo);
-// 	pthread_mutex_lock(&vars->death_mutex);
-// 	philo->last_meal_time = current_time();
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	print_status(EAT, philo);
+// 	pthread_mutex_lock(&vars->atropos);
+// 	philo->last_meal_time = curr_time();
 // 	philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
-// 	pthread_mutex_unlock(&vars->death_mutex);
-// 	pthread_mutex_lock(&vars->meal_check_mutex);
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	pthread_mutex_lock(&vars->hestia);
 // 	philo->meals_eaten++;
-// 	pthread_mutex_unlock(&vars->meal_check_mutex);
+// 	pthread_mutex_unlock(&vars->hestia);
 // 	usleep(vars->time_to_eat * 1000);
-// 	pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-// 	pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
+// 	if (philo->id % 2 == 0)
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 	}
+// 	else
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+// 	}
 // }
-void	start_eating(t_philo *philo)
-{
-	t_vars	*vars;
 
-	vars = philo->shared_vars;
-	// debug_print("Philo %d starting to eat at time %ld", 
-	// 	philo->id + 1, current_time() - vars->start_time);
-	pthread_mutex_lock(&vars->death_mutex);
-	if (vars->is_dead)
-	{
-		pthread_mutex_unlock(&vars->death_mutex);
-		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-		pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
-		return ;
-	}
-	pthread_mutex_unlock(&vars->death_mutex);
-	print_philosopher_message(EAT, philo);
-	pthread_mutex_lock(&vars->death_mutex);
-	philo->last_meal_time = current_time();
-	philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
-	// debug_print("Philo %d updated meal time: last=%ld, next=%ld (now=%ld)", 
-    //             philo->id + 1, philo->last_meal_time - vars->start_time, 
-    //             philo->next_meal_time - vars->start_time, 
-    //             current_time() - vars->start_time);
-	pthread_mutex_unlock(&vars->death_mutex);
-	pthread_mutex_lock(&vars->meal_check_mutex);
-	philo->meals_eaten++;
-	pthread_mutex_unlock(&vars->meal_check_mutex);
-	usleep(vars->time_to_eat * 1000);
-	if (philo->id % 2 == 0)
-	{
-		// debug_print("Philo %d releasing forks after eating at time %ld", 
-		// 	philo->id + 1, current_time() - vars->start_time);
-		pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
-		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-	}
-	else
-	{
-		// debug_print("Philo %d releasing forks after eating at time %ld", 
-		// 	philo->id + 1, current_time() - vars->start_time);
-		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
-		pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
-	}
+// void	release_forks(t_philo *philo)
+// {
+// 	t_vars	*vars;
+
+// 	vars = philo->shared_vars;
+// 	if (philo->id % 2 == 0)
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 	}
+// 	else
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+// 	}
+// }
+
+// void	release_forks(t_philo *philo)
+// {
+// 	t_vars	*vars;
+// 	int		first_fork;
+// 	int		second_fork;
+
+// 	vars = philo->shared_vars;
+// 	determine_fork_order(philo, &first_fork, &second_fork);
+// 	pthread_mutex_unlock(&vars->skeuos[second_fork]);
+// 	pthread_mutex_unlock(&vars->skeuos[first_fork]);
+// }
+void release_forks(t_philo *philo)
+{
+    t_vars *vars;
+    int first_fork;
+    int second_fork;
+
+    vars = philo->shared_vars;
+    determine_fork_order(philo, &first_fork, &second_fork);
+    
+    debug_print("Philo %d releasing forks (second=%d, first=%d) at time %ld", 
+                philo->id + 1, second_fork, first_fork, curr_time() - vars->start_time);
+                
+    pthread_mutex_unlock(&vars->skeuos[second_fork]);
+    pthread_mutex_unlock(&vars->skeuos[first_fork]);
 }
 
-void	start_sleeping(t_philo *philo) // Renamed from ft_sleep
+// void	eat_start(t_philo *philo)
+// {
+// 	t_vars	*vars;
+
+// 	vars = philo->shared_vars;
+// 	if (run_atropos(philo))
+// 	{
+// 		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+// 		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+// 		return ;
+// 	}
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	print_status(EAT, philo);
+// 	pthread_mutex_lock(&vars->atropos);
+// 	philo->last_meal_time = curr_time();
+// 	philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	pthread_mutex_lock(&vars->hestia);
+// 	philo->meals_eaten++;
+// 	pthread_mutex_unlock(&vars->hestia);
+// 	usleep(vars->time_to_eat * 1000);
+// 	release_forks(philo);
+// }
+void eat_start(t_philo *philo)
+{
+    t_vars *vars;
+    long old_next_meal;
+
+    vars = philo->shared_vars;
+    if (run_atropos(philo))
+    {
+        debug_print("Philo %d aborting eat - simulation ended", philo->id + 1);
+        pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+        pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+        return;
+    }
+    
+    print_status(EAT, philo);
+    
+    pthread_mutex_lock(&vars->atropos);
+    old_next_meal = philo->next_meal_time;
+    philo->last_meal_time = curr_time();
+    philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
+    
+    debug_print("Philo %d updated meal times: last_meal=%ld, next_meal=%ld (was %ld), time_to_die=%d", 
+                philo->id + 1, philo->last_meal_time - vars->start_time, 
+                philo->next_meal_time - vars->start_time, 
+                old_next_meal - vars->start_time, vars->time_to_die);
+                
+    pthread_mutex_unlock(&vars->atropos);
+    
+    pthread_mutex_lock(&vars->hestia);
+    philo->meals_eaten++;
+    debug_print("Philo %d has eaten %d meals", philo->id + 1, philo->meals_eaten);
+    pthread_mutex_unlock(&vars->hestia);
+    
+    debug_print("Philo %d sleeping for %d ms during eating", philo->id + 1, vars->time_to_eat);
+    usleep(vars->time_to_eat * 1000);
+    release_forks(philo);
+}
+
+void	zzz_start(t_philo *philo)
 {
 	t_vars	*vars;
 
 	vars = philo->shared_vars;
-	pthread_mutex_lock(&vars->death_mutex);
+	pthread_mutex_lock(&vars->atropos);
 	if (vars->is_dead)
 	{
-		pthread_mutex_unlock(&vars->death_mutex);
+		pthread_mutex_unlock(&vars->atropos);
 		return ;
 	}
-	pthread_mutex_unlock(&vars->death_mutex);
-	print_philosopher_message(SLEEP, philo);
+	pthread_mutex_unlock(&vars->atropos);
+	print_status(SLEEP, philo);
 	if (vars->time_to_die < vars->time_to_sleep)
 		usleep(vars->time_to_die * 1000);
 	else
 		usleep(vars->time_to_sleep * 1000);
 }
 
-/*
-Pre refactor
-*/
-// void	*dining_routine(void *arg) // Renamed from ft_dining
-// {
-// 	t_philo	*philo;
-// 	t_vars	*vars;
 
-// 	philo = (t_philo *)arg;
-// 	vars = philo->shared_vars;
-// 	if (philo->id % 2 == 0)
-// 		usleep(vars->time_to_eat / 2 * 1000);
-// 	while (!ft_mutex_death(philo))
-// 	{
-// 		take_forks(philo);
-// 		start_eating(philo); // Updated reference
-// 		pthread_mutex_lock(&vars->meal_check_mutex);
-// 		if (vars->max_meals != -1 && philo->meals_eaten >= vars->max_meals)
-// 		{
-// 			pthread_mutex_unlock(&vars->meal_check_mutex);
-// 			break ;
-// 		}
-// 		pthread_mutex_unlock(&vars->meal_check_mutex);
-// 		start_sleeping(philo); // Updated reference
-// 		print_philosopher_message(THINK, philo);
-// 	}
-// 	return (NULL);
-// }
-
-
-void	*dining_routine(void *arg) // Renamed from ft_dining
-{
-	t_philo	*philo;
-	t_vars	*vars;
-
-	philo = (t_philo *)arg;
-	vars = philo->shared_vars;
-	// debug_print("Philo %d started at time %ld", 
-	// 	philo->id + 1, current_time() - vars->start_time);
-	if (philo->id % 2 == 0)
-	{
-		// debug_print("Philo %d (even) delaying start by %d ms", 
-        //             philo->id + 1, vars->time_to_eat / 2);
-		usleep(vars->time_to_eat / 2 * 1000);
-	}
-	while (!ft_mutex_death(philo))
-	{
-		// debug_print("Philo %d loop iteration at time %ld", 
-		// 	philo->id + 1, current_time() - vars->start_time);
-		take_forks(philo);
-		start_eating(philo); // Updated reference
-		pthread_mutex_lock(&vars->meal_check_mutex);
-		if (vars->max_meals != -1 && philo->meals_eaten >= vars->max_meals)
-		{
-			pthread_mutex_unlock(&vars->meal_check_mutex);
-			break ;
-		}
-		pthread_mutex_unlock(&vars->meal_check_mutex);
-		// Before sleeping
-        // debug_print("Philo %d beginning sleep at time %ld", 
-		// 	philo->id + 1, current_time() - vars->start_time);
-		start_sleeping(philo); // Updated reference
-		print_philosopher_message(THINK, philo);
-		// After thinking message
-        // debug_print("Philo %d beginning thinking at time %ld", 
-		// 	philo->id + 1, current_time() - vars->start_time);
-	}
-	// debug_print("Philo %d exiting at time %ld", 
-	// 	philo->id + 1, current_time() - vars->start_time);
-	return (NULL);
-}

@@ -6,7 +6,7 @@
 #    By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/02/25 00:56:19 by bleow             #+#    #+#              #
-#    Updated: 2025/04/26 15:23:36 by bleow            ###   ########.fr        #
+#    Updated: 2025/04/26 20:20:12 by bleow            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,8 +19,10 @@ DEBUG_FLAGS = -g
 THREAD_DEBUG_FLAGS = -g -fsanitize=thread -fno-omit-frame-pointer
 SANITIZE_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
-PHILO_FILES = philo.c \
-            initialise.c \
+PHILO_FILES = cleanup.c \
+			initialise.c \
+			philo.c \
+			print_messages.c \
             sim_run_utils.c \
             sim_run.c \
             validate.c 
@@ -28,16 +30,16 @@ PHILO_FILES = philo.c \
 PHILO_SRCS = ./
 PHILO_OBJS_DIR = objects
 
+PHILO_OBJS = $(addprefix $(PHILO_OBJS_DIR)/, $(PHILO_FILES:.c=.o))
+
+all: $(PHILO_OBJS_DIR) $(NAME)
+
 $(PHILO_OBJS_DIR):
 	@mkdir -p $(PHILO_OBJS_DIR)
 
 $(PHILO_OBJS_DIR)/%.o: $(PHILO_SRCS)%.c | $(PHILO_OBJS_DIR)
 	@echo "Compiling $<"
 	@$(CC) $(CFLAGS) $(THREAD_FLAGS) -c $< -o $@
-
-PHILO_OBJS = $(addprefix $(PHILO_OBJS_DIR)/, $(PHILO_FILES:.c=.o))
-
-all: $(NAME)
 
 $(NAME): $(PHILO_OBJS)
 	@echo "Linking $(NAME)"

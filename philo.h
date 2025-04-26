@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 16:23:05 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 20:58:54 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,59 +32,89 @@
 
 typedef struct s_philo	t_philo;
 
+
+
+/*
+Since this is a philosophers program I wanted to be creative with names.
+I decided to use names from Greek mythology.
+-hestia: Goddess of the hearth and food. Lock and checks if ate already.
+-hermes: God of messengers. Locks and prints messages.
+-clotho: Goddess of spinning life threads. For making new threads.
+-lachesis : Goddess of measuring and weaving life threads. Manages the
+ threads.
+-atropos: Goddess of determining death. Locks and checks if dead.
+-argus: All-seeing Giant. Keeps an eye on each of the philosophers.
+-cerberus: Guardian hound of Hades. Mutexes are locks and cerberus 
+ guards against trespassing.
+-sophoi: Greek word for "wise men" or philosophers. Philosopher thread.
+-skeuos: Greek word for "utensil". For forks/fork mutexes.
+-akademia: Greek word for "school/place of learning".
+-katharsis: Greek word for "cleansing/purging". For full cleanup.
+*/
 typedef struct s_vars
 {
-	int				num_philosophers;      // Renamed from n_philo
-	int				time_to_die;          // Renamed from tt_die
-	int				time_to_eat;          // Renamed from tt_eat
-	int				time_to_sleep;        // Renamed from tt_sleep
-	int				max_meals;           // Renamed from max_meal
-	pthread_mutex_t	meal_check_mutex;     // Renamed from meal_check
-	pthread_mutex_t	*fork_mutexes;        // Renamed from forks
-	pthread_mutex_t	message_mutex;        // Renamed from msg
-	pthread_mutex_t	death_mutex;          // Renamed from death
-	int				is_done;              // Renamed from done
-	int				is_dead;              // Renamed from die
-	int				meals_completed;      // Renamed from meals_complete
-	long			start_time;           // Renamed from tt_start
-	pthread_t		*threads;             // Renamed from thread
-	pthread_t		monitor_thread;       // Renamed from monitor
-	t_philo			**philosophers;       // Renamed from philos
+	int				head_count;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				max_meals;
+	pthread_mutex_t	hestia;
+	pthread_mutex_t	*skeuos;
+	pthread_mutex_t	hermes;
+	pthread_mutex_t	atropos;
+	int				is_done;
+	int				is_dead;
+	// int				meals_completed;      // Renamed from meals_complete
+	long			start_time;
+	pthread_t		*clotho;
+	pthread_t		argus;
+	t_philo			**sophoi;
 }	t_vars;
 
 typedef struct s_philo
 {
-	int		id;                        // Renamed from n
-	int		left_fork;                // Renamed from l_hnd
-	int		right_fork;               // Renamed from r_hnd
-	int		is_dead;                  // Renamed from die
-	int		meals_eaten;              // Renamed from eaten
-	long	next_meal_time;           // Renamed from next_meal
-	long	last_meal_time;           // Renamed from last_meal
-	t_vars	*shared_vars;             // Renamed from misc
+	int		id;
+	int		left_fork;
+	int		right_fork;
+	int		is_dead;
+	int		meals_eaten;
+	long	next_meal_time;
+	long	last_meal_time;
+	t_vars	*shared_vars;
 }	t_philo;
 
-void	debug_print(const char *format, ...);
-int		print_error(const char *msg); // Renamed from ft_ext_msg
+void	clean_skeuos(t_vars *vars);
+int		run_katharsis(t_vars *vars, t_philo ***philo);
+
+void	debug_print(const char *format, ...); //DEBUG
+int		init_vars(char **av, t_vars *vars);
+int		chk_args_and_init(int ac, char **av, t_vars *vars);
+int		init_cerberus(t_vars *vars);
+int		init_akademia(t_vars *vars, t_philo ***philo);
+
+int		run_lachesis(t_vars *vars, t_philo ***philo);
+void	*run_sim(void *arg);
+
+int		print_error(const char *msg);
+void	run_hermes(int id, long time, int n);
+void	print_status(int id, t_philo *philo);
+
+long	curr_time(void);
+int		chk_ate_or_dead(t_vars *vars);
+int		digits_valid(int ac, char **av);
+void	*run_argus(void *arg);
+// void	handle_single_philosopher(t_philo *philo);
+void	*handle_single_philosopher(t_philo *philo);
+void	determine_fork_order(t_philo *philo, int *first_fork, int *second_fork);
+void	grab_forks(t_philo *philo);
+void	release_forks(t_philo *philo);
+void	eat_start(t_philo *philo);
+void	zzz_start(t_philo *philo);
+int		run_atropos(t_philo *philo);
+
+int		validate_arguments(int ac, char **av);
 size_t	ft_strlen(const char *str);
+int		calc(long long res, int sign, const char *str, int i);
 int		ft_atoi(const char *str);
-long	current_time(void); // Renamed from now
-void	log_message(int id, long time, int n); // Time in milliseconds
-void	print_philosopher_message(int id, t_philo *philo); // Renamed from ft_print_msg
-int		validate_arguments(int ac, char **av); // New function
-int		initialize_vars(char **av, t_vars *vars); // New function
-int		parse_and_initialize(int ac, char **av, t_vars *vars); // Renamed from ft_parse
-int		ft_check_done(t_vars *vars);
-int		ft_check_num(int ac, char **av);
-void	*ft_monitor(void *arg);
-int		initialize_mutexes(t_vars *vars); // Renamed from ft_init_mutex
-int		initialize_philosophers(t_vars *vars, t_philo ***philo); // Renamed from ft_init_philo
-void	take_forks(t_philo *philo); // Renamed from ft_fork
-void	start_eating(t_philo *philo); // Renamed from ft_eat
-void	start_sleeping(t_philo *philo); // Renamed from ft_sleep
-int		ft_mutex_death(t_philo *philo);
-void	*dining_routine(void *arg); // Renamed from ft_dining
-int		ft_thread(t_vars *vars, t_philo ***philo);
-int		cleanup_resources(t_vars *vars, t_philo ***philo); // Renamed from ft_free
 
 #endif

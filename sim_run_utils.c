@@ -3,17 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   sim_run_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42.fr>                +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 17:15:21 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 21:15:05 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-
-long	current_time(void)
+long	curr_time(void)
 {
 	struct timeval	now;
 
@@ -21,7 +20,7 @@ long	current_time(void)
 	return ((now.tv_sec * 1000) + (now.tv_usec / 1000));
 }
 
-int	ft_check_num(int ac, char **av)
+int	digits_valid(int ac, char **av)
 {
 	int	i;
 	int	j;
@@ -41,117 +40,168 @@ int	ft_check_num(int ac, char **av)
 	return (0);
 }
 
-// int	ft_check_done(t_vars *vars)
+// int	chk_ate_or_dead(t_vars *vars)
 // {
-// 	int	i;
-// 	long current_timestamp = current_time();
-    
-//     debug_print("Monitor checking philosophers at time %ld", 
-//                 current_timestamp - vars->start_time);
-				
+// 	int		i;
+// 	long	curr_timestamp;
+
 // 	i = 0;
-// 	while (i < vars->num_philosophers)
+// 	curr_timestamp = curr_time();
+// 	while (i < vars->head_count)
 // 	{
-// 		pthread_mutex_lock(&vars->death_mutex);
-// 		if (vars->philosophers[i]->next_meal_time < current_time())
+// 		pthread_mutex_lock(&vars->atropos);
+// 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
 // 		{
-// 			print_philosopher_message(DIED, vars->philosophers[i]);
+// 			print_status(DIED, vars->sophoi[i]);
 // 			vars->is_dead = 1;
-// 			pthread_mutex_unlock(&vars->death_mutex);
+// 			pthread_mutex_unlock(&vars->atropos);
 // 			return (1);
 // 		}
-// 		pthread_mutex_unlock(&vars->death_mutex);
+// 		pthread_mutex_unlock(&vars->atropos);
 // 		if (vars->max_meals != -1)
 // 		{
-// 			pthread_mutex_lock(&vars->meal_check_mutex);
-// 			if (vars->philosophers[i]->meals_eaten < vars->max_meals)
+// 			pthread_mutex_lock(&vars->hestia);
+// 			if (vars->sophoi[i]->meals_eaten < vars->max_meals)
 // 				vars->is_done = 0;
-// 			pthread_mutex_unlock(&vars->meal_check_mutex);
+// 			pthread_mutex_unlock(&vars->hestia);
 // 		}
 // 		i++;
 // 	}
 // 	return (0);
 // }
-int	ft_check_done(t_vars *vars)
+// Add to chk_ate_or_dead for death debugging
+int chk_ate_or_dead(t_vars *vars)
 {
-    int	i;
-    long current_timestamp = current_time();
-    
-    // debug_print("Monitor checking philosophers at time %ld", 
-    //             current_timestamp - vars->start_time);
-                
+    int i;
+    long curr_timestamp;
+
     i = 0;
-    while (i < vars->num_philosophers)
+    curr_timestamp = curr_time();
+    debug_print("Monitor checking philosophers at time %ld", 
+                curr_timestamp - vars->start_time);
+                
+    while (i < vars->head_count)
     {
-        pthread_mutex_lock(&vars->death_mutex);
-        // long next_meal = vars->philosophers[i]->next_meal_time;
-        pthread_mutex_unlock(&vars->death_mutex);
+        pthread_mutex_lock(&vars->atropos);
+        long next_meal = vars->sophoi[i]->next_meal_time;
+        pthread_mutex_unlock(&vars->atropos);
         
-        // debug_print("Philo %d next_meal=%ld, now=%ld, diff=%ld", 
-        //             i + 1, next_meal - vars->start_time,
-        //             current_timestamp - vars->start_time,
-        //             next_meal - current_timestamp);
+        debug_print("Philo %d next_meal=%ld, now=%ld, diff=%ld", 
+                    i + 1, next_meal - vars->start_time,
+                    curr_timestamp - vars->start_time,
+                    next_meal - curr_timestamp);
                     
-        pthread_mutex_lock(&vars->death_mutex);
-        if (vars->philosophers[i]->next_meal_time < current_timestamp)
+        pthread_mutex_lock(&vars->atropos);
+        if (vars->sophoi[i]->next_meal_time < curr_timestamp)
         {
-            // debug_print("!!! Philo %d DIED: next_meal=%ld, now=%ld, diff=%ld", 
-            //             i + 1, vars->philosophers[i]->next_meal_time - vars->start_time,
-            //             current_timestamp - vars->start_time,
-            //             vars->philosophers[i]->next_meal_time - current_timestamp);
-            print_philosopher_message(DIED, vars->philosophers[i]);
+            debug_print("!!! Philo %d DIED: next_meal=%ld, now=%ld, diff=%ld", 
+                        i + 1, vars->sophoi[i]->next_meal_time - vars->start_time,
+                        curr_timestamp - vars->start_time,
+                        vars->sophoi[i]->next_meal_time - curr_timestamp);
+            print_status(DIED, vars->sophoi[i]);
             vars->is_dead = 1;
-            pthread_mutex_unlock(&vars->death_mutex);
+            pthread_mutex_unlock(&vars->atropos);
             return (1);
         }
-        pthread_mutex_unlock(&vars->death_mutex);
+        pthread_mutex_unlock(&vars->atropos);
         
+        // ADD THIS CRITICAL CODE - Meal checking logic
         if (vars->max_meals != -1)
         {
-            pthread_mutex_lock(&vars->meal_check_mutex);
-            if (vars->philosophers[i]->meals_eaten < vars->max_meals)
+            pthread_mutex_lock(&vars->hestia);
+            int meals_eaten = vars->sophoi[i]->meals_eaten;
+            debug_print("Philo %d has eaten %d/%d meals", 
+                        i + 1, meals_eaten, vars->max_meals);
+            if (meals_eaten < vars->max_meals)
                 vars->is_done = 0;
-            pthread_mutex_unlock(&vars->meal_check_mutex);
+            pthread_mutex_unlock(&vars->hestia);
         }
+        
         i++;
     }
     return (0);
 }
 
-void	*ft_monitor(void *arg)
-{
-	t_vars	*vars;
+// void	*run_argus(void *arg)
+// {
+// 	t_vars	*vars;
 
-	vars = (t_vars *)arg;
-	while (1)
-	{
-		vars->is_done = 1;
-		if (ft_check_done(vars))
-			return (NULL);
-		if (vars->max_meals != -1 && vars->is_done)
-		{
-			pthread_mutex_lock(&vars->death_mutex);
-			vars->is_dead = 1;
-			pthread_mutex_unlock(&vars->death_mutex);
-			printf("All philosophers have completed their meals\n");
-			return (NULL);
-		}
-		usleep(1000);
-	}
-	return (NULL);
+// 	vars = (t_vars *)arg;
+// 	while (1)
+// 	{
+// 		vars->is_done = 1;
+// 		if (chk_ate_or_dead(vars))
+// 			return (NULL);
+// 		if (vars->max_meals != -1 && vars->is_done)
+// 		{
+// 			pthread_mutex_lock(&vars->atropos);
+// 			vars->is_dead = 1;
+// 			pthread_mutex_unlock(&vars->atropos);
+// 			printf("All philosophers have finished eating meals\n");
+// 			return (NULL);
+// 		}
+// 		usleep(1000);
+// 	}
+// 	return (NULL);
+// }
+void *run_argus(void *arg)
+{
+    t_vars *vars;
+
+    vars = (t_vars *)arg;
+    // Add a small delay to allow philosophers to start eating
+    usleep(10000);  // 10ms initial delay
+    
+    while (1)
+    {
+        // Reset is_done flag before checking
+        vars->is_done = 1;
+        
+        // Check for death or if all required meals eaten
+        if (chk_ate_or_dead(vars))
+            return (NULL);
+        
+        // If max_meals is set and all philosophers have eaten enough
+        if (vars->max_meals != -1 && vars->is_done)
+        {
+            debug_print("All philosophers have eaten at least %d meals", vars->max_meals);
+            pthread_mutex_lock(&vars->atropos);
+            vars->is_dead = 1;
+            pthread_mutex_unlock(&vars->atropos);
+            printf("All philosophers have finished eating meals\n");
+            return (NULL);
+        }
+        usleep(1000);
+    }
+    return (NULL);
 }
 
-int	ft_mutex_death(t_philo *philo)
-{
-	t_vars	*vars;
+// int	run_atropos(t_philo *philo)
+// {
+// 	t_vars	*vars;
 
-	vars = philo->shared_vars;
-	pthread_mutex_lock(&vars->death_mutex);
-	if (vars->is_dead)
-	{
-		pthread_mutex_unlock(&vars->death_mutex);
-		return (1);
-	}
-	pthread_mutex_unlock(&vars->death_mutex);
-	return (0);
+// 	vars = philo->shared_vars;
+// 	pthread_mutex_lock(&vars->atropos);
+// 	if (vars->is_dead)
+// 	{
+// 		pthread_mutex_unlock(&vars->atropos);
+// 		return (1);
+// 	}
+// 	pthread_mutex_unlock(&vars->atropos);
+// 	return (0);
+// }
+int run_atropos(t_philo *philo)
+{
+    t_vars *vars;
+    int is_dead;
+
+    vars = philo->shared_vars;
+    pthread_mutex_lock(&vars->atropos);
+    is_dead = vars->is_dead;
+    if (is_dead)
+    {
+        debug_print("Death detected by Philo %d", philo->id + 1);
+    }
+    pthread_mutex_unlock(&vars->atropos);
+    return is_dead;
 }
