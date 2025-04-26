@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 23:01:40 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/27 00:07:24 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,15 +40,46 @@ int	digits_valid(int ac, char **av)
 	return (0);
 }
 
-int	chk_ate_or_dead(t_vars *vars)
+// int	chk_ate_or_dead(t_vars *vars)
+// {
+// 	int		i;
+// 	long	curr_timestamp;
+// 	int		meals_eaten;
+
+// 	i = 0;
+// 	curr_timestamp = curr_time();
+// 	while (i < vars->head_count)
+// 	{
+// 		pthread_mutex_lock(&vars->atropos);
+// 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
+// 		{
+// 			print_status(DIED, vars->sophoi[i]);
+// 			vars->is_dead = 1;
+// 			pthread_mutex_unlock(&vars->atropos);
+// 			return (1);
+// 		}
+// 		pthread_mutex_unlock(&vars->atropos);
+// 		if (vars->max_meals != -1)
+// 		{
+// 			pthread_mutex_lock(&vars->hestia);
+// 			meals_eaten = vars->sophoi[i]->meals_eaten;
+// 			if (meals_eaten < vars->max_meals)
+// 				vars->is_done = 0;
+// 			pthread_mutex_unlock(&vars->hestia);
+// 		}
+// 		i++;
+// 	}
+// 	return (0);
+// }
+
+int chk_ate_or_dead(t_vars *vars)
 {
 	int		i;
 	long	curr_timestamp;
-	int		meals_eaten;
 
-	i = 0;
+	i = vars->head_count;
 	curr_timestamp = curr_time();
-	while (i < vars->head_count)
+	while (i-- > 0)
 	{
 		pthread_mutex_lock(&vars->atropos);
 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
@@ -62,12 +93,10 @@ int	chk_ate_or_dead(t_vars *vars)
 		if (vars->max_meals != -1)
 		{
 			pthread_mutex_lock(&vars->hestia);
-			meals_eaten = vars->sophoi[i]->meals_eaten;
-			if (meals_eaten < vars->max_meals)
+			if (vars->sophoi[i]->meals_eaten < vars->max_meals)
 				vars->is_done = 0;
 			pthread_mutex_unlock(&vars->hestia);
 		}
-		i++;
 	}
 	return (0);
 }
