@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 21:15:05 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:30:03 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,6 @@ int chk_ate_or_dead(t_vars *vars)
         }
         pthread_mutex_unlock(&vars->atropos);
         
-        // ADD THIS CRITICAL CODE - Meal checking logic
         if (vars->max_meals != -1)
         {
             pthread_mutex_lock(&vars->hestia);
@@ -114,6 +113,8 @@ int chk_ate_or_dead(t_vars *vars)
                         i + 1, meals_eaten, vars->max_meals);
             if (meals_eaten < vars->max_meals)
                 vars->is_done = 0;
+            debug_print("After checking philosopher %d: is_done=%d, meals_eaten=%d", 
+                        i+1, vars->is_done, vars->sophoi[i]->meals_eaten);
             pthread_mutex_unlock(&vars->hestia);
         }
         
@@ -149,31 +150,56 @@ void *run_argus(void *arg)
     t_vars *vars;
 
     vars = (t_vars *)arg;
-    // Add a small delay to allow philosophers to start eating
-    usleep(10000);  // 10ms initial delay
+    // Add a delay to allow philosophers to start eating
+    usleep(100000);  // 100ms initial delay
     
     while (1)
     {
-        // Reset is_done flag before checking
         vars->is_done = 1;
+        debug_print("Before meal check: is_done=%d, max_meals=%d", vars->is_done, vars->max_meals);
         
-        // Check for death or if all required meals eaten
         if (chk_ate_or_dead(vars))
             return (NULL);
         
-        // If max_meals is set and all philosophers have eaten enough
         if (vars->max_meals != -1 && vars->is_done)
         {
-            debug_print("All philosophers have eaten at least %d meals", vars->max_meals);
-            pthread_mutex_lock(&vars->atropos);
-            vars->is_dead = 1;
-            pthread_mutex_unlock(&vars->atropos);
-            printf("All philosophers have finished eating meals\n");
-            return (NULL);
+            // Check if philosophers have actually eaten using a recursive helper function
+            if (check_any_philosopher_has_eaten(vars, 0))
+            {
+                debug_print("All philosophers have eaten at least %d meals", vars->max_meals);
+                pthread_mutex_lock(&vars->atropos);
+                vars->is_dead = 1;
+                pthread_mutex_unlock(&vars->atropos);
+                printf("All philosophers have finished eating meals\n");
+                return (NULL);
+            }
+            else
+            {
+                debug_print("Meal completion check pending - no one has eaten yet");
+            }
         }
         usleep(1000);
     }
     return (NULL);
+}
+
+// Helper function to check if any philosopher has eaten, using recursion instead of a loop
+int check_any_philosopher_has_eaten(t_vars *vars, int index)
+{
+    // Base case: we've checked all philosophers and found none that have eaten
+    if (index >= vars->head_count)
+        return (0);
+        
+    pthread_mutex_lock(&vars->hestia);
+    int has_eaten = vars->sophoi[index]->meals_eaten > 0;
+    pthread_mutex_unlock(&vars->hestia);
+    
+    // If this philosopher has eaten, return true
+    if (has_eaten)
+        return (1);
+        
+    // Otherwise, check the next philosopher
+    return check_any_philosopher_has_eaten(vars, index + 1);
 }
 
 // int	run_atropos(t_philo *philo)

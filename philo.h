@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:05:10 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:30:25 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ long	curr_time(void);
 int		chk_ate_or_dead(t_vars *vars);
 int		digits_valid(int ac, char **av);
 void	*run_argus(void *arg);
+int check_any_philosopher_has_eaten(t_vars *vars, int index);
 // void	handle_single_philosopher(t_philo *philo);
 void	*handle_single_philosopher(t_philo *philo);
 void 	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
