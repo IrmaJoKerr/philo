@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 15:19:35 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 16:23:05 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,9 @@
 # include <limits.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <stdarg.h>  
+
+# define DEBUG 1 
 
 # define FORK 1
 # define EAT 2
@@ -61,6 +64,7 @@ typedef struct s_philo
 	t_vars	*shared_vars;             // Renamed from misc
 }	t_philo;
 
+void	debug_print(const char *format, ...);
 int		print_error(const char *msg); // Renamed from ft_ext_msg
 size_t	ft_strlen(const char *str);
 int		ft_atoi(const char *str);

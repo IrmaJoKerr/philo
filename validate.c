@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:44 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 14:49:41 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 16:05:11 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,24 +96,50 @@ int	ft_atoi(const char *str)
 	return ((int)(sign * res));
 }
 
+/*
+Cleans up fork mutexes.
+Handles partial allocations in failure.
+*/
+static void	clean_fork_mutexes(t_vars *vars)
+{
+	int	i;
+	int	mutex_count;
+
+	if (!vars->fork_mutexes)
+		return ;
+	mutex_count = vars->num_philosophers;
+	i = 0;
+	while (i < mutex_count)
+	{
+		pthread_mutex_destroy(&vars->fork_mutexes[i]);
+		i++;
+	}
+	free(vars->fork_mutexes);
+}
+
+/*
+Clean up all resources used by the simulation
+*/
 int	cleanup_resources(t_vars *vars, t_philo ***philosophers)
 {
 	int	i;
 
+	clean_fork_mutexes(vars);
 	pthread_mutex_destroy(&vars->message_mutex);
 	pthread_mutex_destroy(&vars->death_mutex);
 	pthread_mutex_destroy(&vars->meal_check_mutex);
-	i = 0;
-	while (i < vars->num_philosophers)
-	{
-		pthread_mutex_destroy(&vars->fork_mutexes[i]);
-		if (philosophers && *philosophers)
-			free((*philosophers)[i]);
-		i++;
-	}
-	free(vars->fork_mutexes);
-	free(vars->threads);
 	if (philosophers && *philosophers)
+	{
+		i = 0;
+		while (i < vars->num_philosophers)
+		{
+			if ((*philosophers)[i])
+				free((*philosophers)[i]);
+			i++;
+		}
 		free(*philosophers);
+	}
+	if (vars->threads)
+		free(vars->threads);
 	return (0);
 }

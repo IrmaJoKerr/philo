@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 14:49:00 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 16:20:26 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,32 +41,81 @@ int	ft_check_num(int ac, char **av)
 	return (0);
 }
 
+// int	ft_check_done(t_vars *vars)
+// {
+// 	int	i;
+// 	long current_timestamp = current_time();
+    
+//     debug_print("Monitor checking philosophers at time %ld", 
+//                 current_timestamp - vars->start_time);
+				
+// 	i = 0;
+// 	while (i < vars->num_philosophers)
+// 	{
+// 		pthread_mutex_lock(&vars->death_mutex);
+// 		if (vars->philosophers[i]->next_meal_time < current_time())
+// 		{
+// 			print_philosopher_message(DIED, vars->philosophers[i]);
+// 			vars->is_dead = 1;
+// 			pthread_mutex_unlock(&vars->death_mutex);
+// 			return (1);
+// 		}
+// 		pthread_mutex_unlock(&vars->death_mutex);
+// 		if (vars->max_meals != -1)
+// 		{
+// 			pthread_mutex_lock(&vars->meal_check_mutex);
+// 			if (vars->philosophers[i]->meals_eaten < vars->max_meals)
+// 				vars->is_done = 0;
+// 			pthread_mutex_unlock(&vars->meal_check_mutex);
+// 		}
+// 		i++;
+// 	}
+// 	return (0);
+// }
 int	ft_check_done(t_vars *vars)
 {
-	int	i;
-
-	i = 0;
-	while (i < vars->num_philosophers)
-	{
-		pthread_mutex_lock(&vars->death_mutex);
-		if (vars->philosophers[i]->next_meal_time < current_time())
-		{
-			print_philosopher_message(DIED, vars->philosophers[i]);
-			vars->is_dead = 1;
-			pthread_mutex_unlock(&vars->death_mutex);
-			return (1);
-		}
-		pthread_mutex_unlock(&vars->death_mutex);
-		if (vars->max_meals != -1)
-		{
-			pthread_mutex_lock(&vars->meal_check_mutex);
-			if (vars->philosophers[i]->meals_eaten < vars->max_meals)
-				vars->is_done = 0;
-			pthread_mutex_unlock(&vars->meal_check_mutex);
-		}
-		i++;
-	}
-	return (0);
+    int	i;
+    long current_timestamp = current_time();
+    
+    debug_print("Monitor checking philosophers at time %ld", 
+                current_timestamp - vars->start_time);
+                
+    i = 0;
+    while (i < vars->num_philosophers)
+    {
+        pthread_mutex_lock(&vars->death_mutex);
+        long next_meal = vars->philosophers[i]->next_meal_time;
+        pthread_mutex_unlock(&vars->death_mutex);
+        
+        debug_print("Philo %d next_meal=%ld, now=%ld, diff=%ld", 
+                    i + 1, next_meal - vars->start_time,
+                    current_timestamp - vars->start_time,
+                    next_meal - current_timestamp);
+                    
+        pthread_mutex_lock(&vars->death_mutex);
+        if (vars->philosophers[i]->next_meal_time < current_timestamp)
+        {
+            debug_print("!!! Philo %d DIED: next_meal=%ld, now=%ld, diff=%ld", 
+                        i + 1, vars->philosophers[i]->next_meal_time - vars->start_time,
+                        current_timestamp - vars->start_time,
+                        vars->philosophers[i]->next_meal_time - current_timestamp);
+            print_philosopher_message(DIED, vars->philosophers[i]);
+            vars->is_dead = 1;
+            pthread_mutex_unlock(&vars->death_mutex);
+            return (1);
+        }
+        pthread_mutex_unlock(&vars->death_mutex);
+        
+        if (vars->max_meals != -1)
+        {
+            pthread_mutex_lock(&vars->meal_check_mutex);
+            if (vars->philosophers[i]->meals_eaten < vars->max_meals)
+                vars->is_done = 0;
+            pthread_mutex_unlock(&vars->meal_check_mutex);
+        }
+        i++;
+    }
+    return (0);
 }
 
 void	*ft_monitor(void *arg)
