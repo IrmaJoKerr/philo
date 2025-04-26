@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 20:58:54 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:05:10 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ int		digits_valid(int ac, char **av);
 void	*run_argus(void *arg);
 // void	handle_single_philosopher(t_philo *philo);
 void	*handle_single_philosopher(t_philo *philo);
-void	determine_fork_order(t_philo *philo, int *first_fork, int *second_fork);
+void 	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
 void	grab_forks(t_philo *philo);
 void	release_forks(t_philo *philo);
 void	eat_start(t_philo *philo);

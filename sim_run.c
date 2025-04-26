@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:37 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 21:07:30 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:12:57 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,27 +35,26 @@ void	*handle_single_philosopher(t_philo *philo)
 }
 
 /**
- * Determines the order in which philosophers should acquire forks
+ * Determines the fork order based on philosopher ID
  * Even philosophers: left fork first, right fork second
  * Odd philosophers: right fork first, left fork second
+ * Simple function that doesn't use ternary operators
  * @param philo The philosopher
- * @param first_fork Pointer to store the first fork index
- * @param second_fork Pointer to store the second fork index
+ * @param first_fork Pointer to store the first fork to grab
+ * @param second_fork Pointer to store the second fork to grab
  */
-void determine_fork_order(t_philo *philo, int *first_fork, int *second_fork)
+void set_fork_order(t_philo *philo, int *first_fork, int *second_fork)
 {
-    if (philo->id % 2 == 0)
-    {
-        *first_fork = philo->left_fork;
-        *second_fork = philo->right_fork;
-    }
-    else
-    {
-        *first_fork = philo->right_fork;
-        *second_fork = philo->left_fork;
-    }
-    debug_print("Philo %d assigned forks: first=%d, second=%d", 
-                philo->id + 1, *first_fork, *second_fork);
+	if (philo->id % 2 == 0)
+	{
+		*first_fork = philo->left_fork;
+		*second_fork = philo->right_fork;
+	}
+	else
+	{
+		*first_fork = philo->right_fork;
+		*second_fork = philo->left_fork;
+	}
 }
 
 /**
@@ -97,57 +96,31 @@ void determine_fork_order(t_philo *philo, int *first_fork, int *second_fork)
 // 	pthread_mutex_lock(&vars->skeuos[second_fork]);
 // 	print_status(FORK, philo);
 // }
-void grab_forks(t_philo *philo)
+void	grab_forks(t_philo *philo)
 {
-    t_vars *vars;
-    int first_fork;
-    int second_fork;
-    long next_meal;
+	int		first_fork;
+	int		second_fork;
+	long	next_meal;
 
-    vars = philo->shared_vars;
-    debug_print("Philo %d attempting to take forks at time %ld", 
-                philo->id + 1, curr_time() - vars->start_time);
-
-    determine_fork_order(philo, &first_fork, &second_fork);
-    
-    debug_print("Philo %d trying to acquire first fork %d", philo->id + 1, first_fork);
-    pthread_mutex_lock(&vars->skeuos[first_fork]);
-    debug_print("Philo %d acquired first fork %d at time %ld", 
-                philo->id + 1, first_fork, curr_time() - vars->start_time);
-    
-    print_status(FORK, philo);
-    
-    if (run_atropos(philo))
-    {
-        debug_print("Philo %d releasing fork - simulation ended", philo->id + 1);
-        pthread_mutex_unlock(&vars->skeuos[first_fork]);
-        return;
-    }
-    
-    pthread_mutex_lock(&vars->atropos);
-    next_meal = philo->next_meal_time;
-    pthread_mutex_unlock(&vars->atropos);
-    
-    long current = curr_time();
-    debug_print("Philo %d safety check: current=%ld, next_meal=%ld, diff=%ld, threshold=%ld", 
-                philo->id + 1, current - vars->start_time, 
-                next_meal - vars->start_time,
-                next_meal - current, 500);
-                
-    if (current > next_meal - 500)
-    {
-        debug_print("Philo %d releasing first fork - death too close (margin: %ld ms)", 
-                    philo->id + 1, next_meal - current);
-        pthread_mutex_unlock(&vars->skeuos[first_fork]);
-        usleep(200);
-        return;
-    }
-    
-    debug_print("Philo %d trying to acquire second fork %d", philo->id + 1, second_fork);
-    pthread_mutex_lock(&vars->skeuos[second_fork]);
-    debug_print("Philo %d acquired both forks (%d, %d) at time %ld", 
-                philo->id + 1, first_fork, second_fork, curr_time() - vars->start_time);
-    print_status(FORK, philo);
+	set_fork_order(philo, &first_fork, &second_fork);
+	pthread_mutex_lock(&philo->shared_vars->skeuos[first_fork]);
+	print_status(FORK, philo);
+	if (run_atropos(philo))
+	{
+		pthread_mutex_unlock(&philo->shared_vars->skeuos[first_fork]);
+		return ;
+	}
+	pthread_mutex_lock(&philo->shared_vars->atropos);
+	next_meal = philo->next_meal_time;
+	pthread_mutex_unlock(&philo->shared_vars->atropos);
+	if (curr_time() > next_meal - 500)
+	{
+		pthread_mutex_unlock(&philo->shared_vars->skeuos[first_fork]);
+		usleep(200);
+		return;
+	}
+	pthread_mutex_lock(&philo->shared_vars->skeuos[second_fork]);
+	print_status(FORK, philo);
 }
 
 // void	grab_forks(t_philo *philo)
@@ -310,7 +283,7 @@ void release_forks(t_philo *philo)
     int second_fork;
 
     vars = philo->shared_vars;
-    determine_fork_order(philo, &first_fork, &second_fork);
+    set_fork_order(philo, &first_fork, &second_fork);  // Changed from determine_fork_order
     
     debug_print("Philo %d releasing forks (second=%d, first=%d) at time %ld", 
                 philo->id + 1, second_fork, first_fork, curr_time() - vars->start_time);
@@ -344,40 +317,40 @@ void release_forks(t_philo *philo)
 // }
 void eat_start(t_philo *philo)
 {
-    t_vars *vars;
-    long old_next_meal;
+	t_vars *vars;
+	long old_next_meal;
 
-    vars = philo->shared_vars;
-    if (run_atropos(philo))
-    {
-        debug_print("Philo %d aborting eat - simulation ended", philo->id + 1);
-        pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
-        pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
-        return;
-    }
-    
-    print_status(EAT, philo);
-    
-    pthread_mutex_lock(&vars->atropos);
-    old_next_meal = philo->next_meal_time;
-    philo->last_meal_time = curr_time();
-    philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
-    
-    debug_print("Philo %d updated meal times: last_meal=%ld, next_meal=%ld (was %ld), time_to_die=%d", 
-                philo->id + 1, philo->last_meal_time - vars->start_time, 
-                philo->next_meal_time - vars->start_time, 
-                old_next_meal - vars->start_time, vars->time_to_die);
-                
-    pthread_mutex_unlock(&vars->atropos);
-    
-    pthread_mutex_lock(&vars->hestia);
-    philo->meals_eaten++;
-    debug_print("Philo %d has eaten %d meals", philo->id + 1, philo->meals_eaten);
-    pthread_mutex_unlock(&vars->hestia);
-    
-    debug_print("Philo %d sleeping for %d ms during eating", philo->id + 1, vars->time_to_eat);
-    usleep(vars->time_to_eat * 1000);
-    release_forks(philo);
+	vars = philo->shared_vars;
+	if (run_atropos(philo))
+	{
+		debug_print("Philo %d aborting eat - simulation ended", philo->id + 1);
+		pthread_mutex_unlock(&vars->skeuos[philo->left_fork]);
+		pthread_mutex_unlock(&vars->skeuos[philo->right_fork]);
+		return;
+	}
+	
+	print_status(EAT, philo);
+	
+	pthread_mutex_lock(&vars->atropos);
+	old_next_meal = philo->next_meal_time;
+	philo->last_meal_time = curr_time();
+	philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
+	
+	debug_print("Philo %d updated meal times: last_meal=%ld, next_meal=%ld (was %ld), time_to_die=%d", 
+				philo->id + 1, philo->last_meal_time - vars->start_time, 
+				philo->next_meal_time - vars->start_time, 
+				old_next_meal - vars->start_time, vars->time_to_die);
+				
+	pthread_mutex_unlock(&vars->atropos);
+	
+	pthread_mutex_lock(&vars->hestia);
+	philo->meals_eaten++;
+	debug_print("Philo %d has eaten %d meals", philo->id + 1, philo->meals_eaten);
+	pthread_mutex_unlock(&vars->hestia);
+	
+	debug_print("Philo %d sleeping for %d ms during eating", philo->id + 1, vars->time_to_eat);
+	usleep(vars->time_to_eat * 1000);
+	release_forks(philo);
 }
 
 void	zzz_start(t_philo *philo)
