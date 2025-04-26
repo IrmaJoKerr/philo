@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:53:33 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/27 01:13:03 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,8 @@ int		run_atropos(t_philo *philo);
 
 void	*solo_philo_case(t_philo *philo);
 void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
-void	grab_forks(t_philo *philo);
+// void	grab_forks(t_philo *philo);
+int		grab_forks(t_philo *philo);
 void	release_forks(t_philo *philo);
 void	eat_start(t_philo *philo);
 void	zzz_start(t_philo *philo);
