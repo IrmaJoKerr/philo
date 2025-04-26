@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sim_run.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:37 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 16:34:31 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 17:14:53 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ void take_forks(t_philo *philo)
     int first_fork, second_fork;
 
     vars = philo->shared_vars;
-    debug_print("Philo %d attempting to take forks at time %ld", 
-        philo->id + 1, current_time() - vars->start_time);
+    // debug_print("Philo %d attempting to take forks at time %ld", 
+    //     philo->id + 1, current_time() - vars->start_time);
     if (vars->num_philosophers == 1)
     {
         // Single philosopher case unchanged
@@ -63,8 +63,8 @@ void take_forks(t_philo *philo)
     // Lock first fork
     pthread_mutex_lock(&vars->fork_mutexes[first_fork]);
     print_philosopher_message(FORK, philo);
-    debug_print("Philo %d acquired first fork %d at time %ld", 
-        philo->id + 1, first_fork, current_time() - vars->start_time);
+    // debug_print("Philo %d acquired first fork %d at time %ld", 
+    //     philo->id + 1, first_fork, current_time() - vars->start_time);
 
     // Check if simulation ended after first fork acquisition
     if (ft_mutex_death(philo))
@@ -78,20 +78,20 @@ void take_forks(t_philo *philo)
     long next_meal = philo->next_meal_time;
     pthread_mutex_unlock(&vars->death_mutex);
     
-    if (current_time() > next_meal - 200) // 200ms safety margin
+    if (current_time() > next_meal - 500) // 200ms safety margin
     {
-        debug_print("Philo %d releasing first fork - death too close (margin: %ld ms)", 
-            philo->id + 1, next_meal - current_time());
+        // debug_print("Philo %d releasing first fork - death too close (margin: %ld ms)", 
+        //     philo->id + 1, next_meal - current_time());
         pthread_mutex_unlock(&vars->fork_mutexes[first_fork]);
-        usleep(1000); // Small delay before retrying
+        usleep(200); // Small delay before retrying
         return; // Return to main loop to try again
     }
 
     // Try to take second fork
     pthread_mutex_lock(&vars->fork_mutexes[second_fork]);
     print_philosopher_message(FORK, philo);
-    debug_print("Philo %d acquired both forks (%d, %d) at time %ld", 
-            philo->id + 1, first_fork, second_fork, current_time() - vars->start_time);
+    // debug_print("Philo %d acquired both forks (%d, %d) at time %ld", 
+    //         philo->id + 1, first_fork, second_fork, current_time() - vars->start_time);
 }
 
 // void	start_eating(t_philo *philo) // Renamed from ft_eat
@@ -125,8 +125,8 @@ void	start_eating(t_philo *philo)
 	t_vars	*vars;
 
 	vars = philo->shared_vars;
-	debug_print("Philo %d starting to eat at time %ld", 
-		philo->id + 1, current_time() - vars->start_time);
+	// debug_print("Philo %d starting to eat at time %ld", 
+	// 	philo->id + 1, current_time() - vars->start_time);
 	pthread_mutex_lock(&vars->death_mutex);
 	if (vars->is_dead)
 	{
@@ -140,10 +140,10 @@ void	start_eating(t_philo *philo)
 	pthread_mutex_lock(&vars->death_mutex);
 	philo->last_meal_time = current_time();
 	philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
-	debug_print("Philo %d updated meal time: last=%ld, next=%ld (now=%ld)", 
-                philo->id + 1, philo->last_meal_time - vars->start_time, 
-                philo->next_meal_time - vars->start_time, 
-                current_time() - vars->start_time);
+	// debug_print("Philo %d updated meal time: last=%ld, next=%ld (now=%ld)", 
+    //             philo->id + 1, philo->last_meal_time - vars->start_time, 
+    //             philo->next_meal_time - vars->start_time, 
+    //             current_time() - vars->start_time);
 	pthread_mutex_unlock(&vars->death_mutex);
 	pthread_mutex_lock(&vars->meal_check_mutex);
 	philo->meals_eaten++;
@@ -151,15 +151,15 @@ void	start_eating(t_philo *philo)
 	usleep(vars->time_to_eat * 1000);
 	if (philo->id % 2 == 0)
 	{
-		debug_print("Philo %d releasing forks after eating at time %ld", 
-			philo->id + 1, current_time() - vars->start_time);
+		// debug_print("Philo %d releasing forks after eating at time %ld", 
+		// 	philo->id + 1, current_time() - vars->start_time);
 		pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
 		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
 	}
 	else
 	{
-		debug_print("Philo %d releasing forks after eating at time %ld", 
-			philo->id + 1, current_time() - vars->start_time);
+		// debug_print("Philo %d releasing forks after eating at time %ld", 
+		// 	philo->id + 1, current_time() - vars->start_time);
 		pthread_mutex_unlock(&vars->fork_mutexes[philo->left_fork]);
 		pthread_mutex_unlock(&vars->fork_mutexes[philo->right_fork]);
 	}
@@ -221,18 +221,18 @@ void	*dining_routine(void *arg) // Renamed from ft_dining
 
 	philo = (t_philo *)arg;
 	vars = philo->shared_vars;
-	debug_print("Philo %d started at time %ld", 
-		philo->id + 1, current_time() - vars->start_time);
+	// debug_print("Philo %d started at time %ld", 
+	// 	philo->id + 1, current_time() - vars->start_time);
 	if (philo->id % 2 == 0)
 	{
-		debug_print("Philo %d (even) delaying start by %d ms", 
-                    philo->id + 1, vars->time_to_eat / 2);
+		// debug_print("Philo %d (even) delaying start by %d ms", 
+        //             philo->id + 1, vars->time_to_eat / 2);
 		usleep(vars->time_to_eat / 2 * 1000);
 	}
 	while (!ft_mutex_death(philo))
 	{
-		debug_print("Philo %d loop iteration at time %ld", 
-			philo->id + 1, current_time() - vars->start_time);
+		// debug_print("Philo %d loop iteration at time %ld", 
+		// 	philo->id + 1, current_time() - vars->start_time);
 		take_forks(philo);
 		start_eating(philo); // Updated reference
 		pthread_mutex_lock(&vars->meal_check_mutex);
@@ -243,15 +243,15 @@ void	*dining_routine(void *arg) // Renamed from ft_dining
 		}
 		pthread_mutex_unlock(&vars->meal_check_mutex);
 		// Before sleeping
-        debug_print("Philo %d beginning sleep at time %ld", 
-			philo->id + 1, current_time() - vars->start_time);
+        // debug_print("Philo %d beginning sleep at time %ld", 
+		// 	philo->id + 1, current_time() - vars->start_time);
 		start_sleeping(philo); // Updated reference
 		print_philosopher_message(THINK, philo);
 		// After thinking message
-        debug_print("Philo %d beginning thinking at time %ld", 
-			philo->id + 1, current_time() - vars->start_time);
+        // debug_print("Philo %d beginning thinking at time %ld", 
+		// 	philo->id + 1, current_time() - vars->start_time);
 	}
-	debug_print("Philo %d exiting at time %ld", 
-		philo->id + 1, current_time() - vars->start_time);
+	// debug_print("Philo %d exiting at time %ld", 
+	// 	philo->id + 1, current_time() - vars->start_time);
 	return (NULL);
 }

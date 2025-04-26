@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sim_run_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 16:20:26 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 17:15:21 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,28 +77,28 @@ int	ft_check_done(t_vars *vars)
     int	i;
     long current_timestamp = current_time();
     
-    debug_print("Monitor checking philosophers at time %ld", 
-                current_timestamp - vars->start_time);
+    // debug_print("Monitor checking philosophers at time %ld", 
+    //             current_timestamp - vars->start_time);
                 
     i = 0;
     while (i < vars->num_philosophers)
     {
         pthread_mutex_lock(&vars->death_mutex);
-        long next_meal = vars->philosophers[i]->next_meal_time;
+        // long next_meal = vars->philosophers[i]->next_meal_time;
         pthread_mutex_unlock(&vars->death_mutex);
         
-        debug_print("Philo %d next_meal=%ld, now=%ld, diff=%ld", 
-                    i + 1, next_meal - vars->start_time,
-                    current_timestamp - vars->start_time,
-                    next_meal - current_timestamp);
+        // debug_print("Philo %d next_meal=%ld, now=%ld, diff=%ld", 
+        //             i + 1, next_meal - vars->start_time,
+        //             current_timestamp - vars->start_time,
+        //             next_meal - current_timestamp);
                     
         pthread_mutex_lock(&vars->death_mutex);
         if (vars->philosophers[i]->next_meal_time < current_timestamp)
         {
-            debug_print("!!! Philo %d DIED: next_meal=%ld, now=%ld, diff=%ld", 
-                        i + 1, vars->philosophers[i]->next_meal_time - vars->start_time,
-                        current_timestamp - vars->start_time,
-                        vars->philosophers[i]->next_meal_time - current_timestamp);
+            // debug_print("!!! Philo %d DIED: next_meal=%ld, now=%ld, diff=%ld", 
+            //             i + 1, vars->philosophers[i]->next_meal_time - vars->start_time,
+            //             current_timestamp - vars->start_time,
+            //             vars->philosophers[i]->next_meal_time - current_timestamp);
             print_philosopher_message(DIED, vars->philosophers[i]);
             vars->is_dead = 1;
             pthread_mutex_unlock(&vars->death_mutex);
