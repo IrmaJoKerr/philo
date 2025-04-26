@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:30:25 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:53:33 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,20 +100,20 @@ void	run_hermes(int id, long time, int n);
 void	print_status(int id, t_philo *philo);
 
 long	curr_time(void);
-int		chk_ate_or_dead(t_vars *vars);
 int		digits_valid(int ac, char **av);
+int		chk_ate_or_dead(t_vars *vars);
 void	*run_argus(void *arg);
-int check_any_philosopher_has_eaten(t_vars *vars, int index);
-// void	handle_single_philosopher(t_philo *philo);
-void	*handle_single_philosopher(t_philo *philo);
-void 	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
+int		philo_eaten_chk(t_vars *vars, int index);
+int		run_atropos(t_philo *philo);
+
+void	*solo_philo_case(t_philo *philo);
+void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
 void	grab_forks(t_philo *philo);
 void	release_forks(t_philo *philo);
 void	eat_start(t_philo *philo);
 void	zzz_start(t_philo *philo);
-int		run_atropos(t_philo *philo);
 
-int		validate_arguments(int ac, char **av);
+int		validate_args(int ac, char **av);
 size_t	ft_strlen(const char *str);
 int		calc(long long res, int sign, const char *str, int i);
 int		ft_atoi(const char *str);

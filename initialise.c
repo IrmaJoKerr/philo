@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:07 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:29:18 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:51:20 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int init_vars(char **av, t_vars *vars)
 	vars->time_to_eat = ft_atoi(av[3]);
 	vars->time_to_sleep = ft_atoi(av[4]);
 	vars->max_meals = -1;
-	vars->is_done = 0;  // Explicitly initialize to 0
+	vars->is_done = 0;
 	debug_print("Initial is_done value: %d", vars->is_done);
 	if (av[5] != NULL)
 		vars->max_meals = ft_atoi(av[5]);
@@ -52,7 +52,7 @@ int init_vars(char **av, t_vars *vars)
 
 int	chk_args_and_init(int ac, char **av, t_vars *vars)
 {
-	if (validate_arguments(ac, av))
+	if (validate_args(ac, av))
 		return (1);
 	return (init_vars(av, vars));
 }

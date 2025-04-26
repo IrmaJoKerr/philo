@@ -6,13 +6,13 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:44 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 20:21:26 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 22:51:20 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	validate_arguments(int ac, char **av)
+int	validate_args(int ac, char **av)
 {
 	if (ac < 5 || ac > 6)
 		return (print_error("wrong number of arg"));
