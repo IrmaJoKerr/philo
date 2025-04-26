@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:37 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:50:36 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 23:02:08 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ void	release_forks(t_philo *philo)
 void	eat_start(t_philo *philo)
 {
 	t_vars	*vars;
-	long	old_next_meal;
 
 	vars = philo->shared_vars;
 	if (run_atropos(philo))
@@ -91,7 +90,6 @@ void	eat_start(t_philo *philo)
 	}
 	print_status(EAT, philo);
 	pthread_mutex_lock(&vars->atropos);
-	old_next_meal = philo->next_meal_time;
 	philo->last_meal_time = curr_time();
 	philo->next_meal_time = philo->last_meal_time + vars->time_to_die;
 	pthread_mutex_unlock(&vars->atropos);

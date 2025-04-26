@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:49:17 by bleow            ###   ########.fr       */
+/*   Updated: 2025/04/26 23:01:40 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,16 +44,12 @@ int	chk_ate_or_dead(t_vars *vars)
 {
 	int		i;
 	long	curr_timestamp;
-	long	next_meal;
 	int		meals_eaten;
 
 	i = 0;
 	curr_timestamp = curr_time();
 	while (i < vars->head_count)
 	{
-		pthread_mutex_lock(&vars->atropos);
-		next_meal = vars->sophoi[i]->next_meal_time;
-		pthread_mutex_unlock(&vars->atropos);
 		pthread_mutex_lock(&vars->atropos);
 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
 		{
