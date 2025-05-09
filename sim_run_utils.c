@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sim_run_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/27 00:07:24 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/10 04:14:21 by huidris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,52 +40,20 @@ int	digits_valid(int ac, char **av)
 	return (0);
 }
 
-// int	chk_ate_or_dead(t_vars *vars)
-// {
-// 	int		i;
-// 	long	curr_timestamp;
-// 	int		meals_eaten;
-
-// 	i = 0;
-// 	curr_timestamp = curr_time();
-// 	while (i < vars->head_count)
-// 	{
-// 		pthread_mutex_lock(&vars->atropos);
-// 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
-// 		{
-// 			print_status(DIED, vars->sophoi[i]);
-// 			vars->is_dead = 1;
-// 			pthread_mutex_unlock(&vars->atropos);
-// 			return (1);
-// 		}
-// 		pthread_mutex_unlock(&vars->atropos);
-// 		if (vars->max_meals != -1)
-// 		{
-// 			pthread_mutex_lock(&vars->hestia);
-// 			meals_eaten = vars->sophoi[i]->meals_eaten;
-// 			if (meals_eaten < vars->max_meals)
-// 				vars->is_done = 0;
-// 			pthread_mutex_unlock(&vars->hestia);
-// 		}
-// 		i++;
-// 	}
-// 	return (0);
-// }
-
-int chk_ate_or_dead(t_vars *vars)
+int	chk_ate_or_dead(t_vars *vars)
 {
 	int		i;
 	long	curr_timestamp;
 
-	i = vars->head_count;
+	i = 0;
 	curr_timestamp = curr_time();
-	while (i-- > 0)
+	while (i < vars->head_count)
 	{
 		pthread_mutex_lock(&vars->atropos);
 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
 		{
-			print_status(DIED, vars->sophoi[i]);
 			vars->is_dead = 1;
+			print_status(DIED, vars->sophoi[i]);
 			pthread_mutex_unlock(&vars->atropos);
 			return (1);
 		}
@@ -97,6 +65,7 @@ int chk_ate_or_dead(t_vars *vars)
 				vars->is_done = 0;
 			pthread_mutex_unlock(&vars->hestia);
 		}
+		i++;
 	}
 	return (0);
 }
@@ -106,7 +75,7 @@ void	*run_argus(void *arg)
 	t_vars	*vars;
 
 	vars = (t_vars *)arg;
-	usleep(100000);
+	usleep(300);
 	while (1)
 	{
 		vars->is_done = 1;
@@ -114,33 +83,30 @@ void	*run_argus(void *arg)
 			return (NULL);
 		if (vars->max_meals != -1 && vars->is_done)
 		{
-			if (philo_eaten_chk(vars, 0))
-			{
-				pthread_mutex_lock(&vars->atropos);
-				vars->is_dead = 1;
-				pthread_mutex_unlock(&vars->atropos);
-				printf("All philosophers have finished eating meals\n");
-				return (NULL);
-			}
+			pthread_mutex_lock(&vars->atropos);
+			vars->is_dead = 1;
+			pthread_mutex_unlock(&vars->atropos);
+			printf("All philosophers have completed their meals\n");
+			return (NULL);
 		}
-		usleep(1000);
+		usleep(500);
 	}
 	return (NULL);
 }
 
-int	philo_eaten_chk(t_vars *vars, int index)
-{
-	int	has_eaten;
+// int	philo_eaten_chk(t_vars *vars, int index)
+// {
+// 	int	has_eaten;
 
-	if (index >= vars->head_count)
-		return (0);
-	pthread_mutex_lock(&vars->hestia);
-	has_eaten = vars->sophoi[index]->meals_eaten > 0;
-	pthread_mutex_unlock(&vars->hestia);
-	if (has_eaten)
-		return (1);
-	return (philo_eaten_chk(vars, index + 1));
-}
+// 	if (index >= vars->head_count)
+// 		return (0);
+// 	pthread_mutex_lock(&vars->hestia);
+// 	has_eaten = vars->sophoi[index]->meals_eaten > 0;
+// 	pthread_mutex_unlock(&vars->hestia);
+// 	if (has_eaten)
+// 		return (1);
+// 	return (philo_eaten_chk(vars, index + 1));
+// }
 
 int	run_atropos(t_philo *philo)
 {

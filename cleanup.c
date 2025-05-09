@@ -3,19 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   cleanup.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 19:39:38 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 20:10:25 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/10 03:59:48 by huidris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-/*
-Cleans up fork mutexes.
-Handles partial allocations in failure.
-*/
 void	clean_skeuos(t_vars *vars)
 {
 	int	i;
@@ -33,9 +29,6 @@ void	clean_skeuos(t_vars *vars)
 	free(vars->skeuos);
 }
 
-/*
-Clean up all resources used by the simulation
-*/
 int	run_katharsis(t_vars *vars, t_philo ***sophoi)
 {
 	int	i;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   initialise.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:07 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/26 22:51:20 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/10 04:00:28 by huidris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,18 +25,7 @@ void	debug_print(const char *format, ...)
 	va_end(args);
 }
 
-// int	init_vars(char **av, t_vars *vars)
-// {
-// 	vars->head_count = ft_atoi(av[1]);
-// 	vars->time_to_die = ft_atoi(av[2]);
-// 	vars->time_to_eat = ft_atoi(av[3]);
-// 	vars->time_to_sleep = ft_atoi(av[4]);
-// 	vars->max_meals = -1;
-// 	if (av[5] != NULL)
-// 		vars->max_meals = ft_atoi(av[5]);
-// 	return (0);
-// }
-int init_vars(char **av, t_vars *vars)
+int	init_vars(char **av, t_vars *vars)
 {
 	vars->head_count = ft_atoi(av[1]);
 	vars->time_to_die = ft_atoi(av[2]);
@@ -44,7 +33,7 @@ int init_vars(char **av, t_vars *vars)
 	vars->time_to_sleep = ft_atoi(av[4]);
 	vars->max_meals = -1;
 	vars->is_done = 0;
-	debug_print("Initial is_done value: %d", vars->is_done);
+	vars->is_dead = 0;
 	if (av[5] != NULL)
 		vars->max_meals = ft_atoi(av[5]);
 	return (0);

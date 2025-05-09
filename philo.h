@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/04/27 01:13:03 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/10 04:06:04 by huidris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@
 # include <limits.h>
 # include <pthread.h>
 # include <sys/time.h>
-# include <stdarg.h>  
+# include <stdarg.h>
 
-# define DEBUG 1 
+# define DEBUG 1
 
 # define FORK 1
 # define EAT 2
@@ -31,8 +31,6 @@
 # define END 6
 
 typedef struct s_philo	t_philo;
-
-
 
 /*
 Since this is a philosophers program I wanted to be creative with names.
@@ -44,7 +42,7 @@ I decided to use names from Greek mythology.
  threads.
 -atropos: Goddess of determining death. Locks and checks if dead.
 -argus: All-seeing Giant. Keeps an eye on each of the philosophers.
--cerberus: Guardian hound of Hades. Mutexes are locks and cerberus 
+-cerberus: Guardian hound of Hades. Mutexes are locks and cerberus
  guards against trespassing.
 -sophoi: Greek word for "wise men" or philosophers. Philosopher thread.
 -skeuos: Greek word for "utensil". For forks/fork mutexes.
@@ -103,11 +101,12 @@ long	curr_time(void);
 int		digits_valid(int ac, char **av);
 int		chk_ate_or_dead(t_vars *vars);
 void	*run_argus(void *arg);
-int		philo_eaten_chk(t_vars *vars, int index);
+// int		philo_eaten_chk(t_vars *vars, int index);
 int		run_atropos(t_philo *philo);
 
 void	*solo_philo_case(t_philo *philo);
 void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
+void	release_forks(t_philo *philo);
 // void	grab_forks(t_philo *philo);
 int		grab_forks(t_philo *philo);
 void	release_forks(t_philo *philo);
