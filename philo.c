@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:40:28 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/10 04:09:14 by huidris          ###   ########.fr       */
+/*   Updated: 2025/05/10 17:15:54 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,36 @@ int	run_lachesis(t_vars *vars, t_philo ***sophoi)
 	return (0);
 }
 
+// void	*run_sim(void *arg)
+// {
+// 	t_philo	*philo;
+// 	t_vars	*vars;
+
+// 	philo = (t_philo *)arg;
+// 	vars = philo->shared_vars;
+// 	if (vars->head_count == 1)
+// 		return (solo_philo_case(philo), NULL);
+// 	usleep((philo->id) * 20 * 1000);
+// 	while (!run_atropos(philo))
+// 	{
+// 		if (grab_forks(philo))
+// 		{
+// 			eat_start(philo);
+// 			pthread_mutex_lock(&vars->hestia);
+// 			if (vars->max_meals != -1 && philo->meals_eaten >= vars->max_meals)
+// 			{
+// 				pthread_mutex_unlock(&vars->hestia);
+// 				break ;
+// 			}
+// 			pthread_mutex_unlock(&vars->hestia);
+// 			zzz_start(philo);
+// 			print_status(THINK, philo);
+// 		}
+// 		else
+// 			usleep(((philo->id * 37) % 10 + 1) * 500);
+// 	}
+// 	return (NULL);
+// }
 void	*run_sim(void *arg)
 {
 	t_philo	*philo;
@@ -44,7 +74,8 @@ void	*run_sim(void *arg)
 	vars = philo->shared_vars;
 	if (vars->head_count == 1)
 		return (solo_philo_case(philo), NULL);
-	usleep((philo->id) * 20 * 1000);
+	// Replace existing staggering with improved version
+	stagger_start(philo->id, vars->head_count);
 	while (!run_atropos(philo))
 	{
 		if (grab_forks(philo))

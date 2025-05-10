@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   sim_run_utils.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/10 04:14:21 by huidris          ###   ########.fr       */
+/*   Updated: 2025/05/10 17:14:25 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,33 +40,85 @@ int	digits_valid(int ac, char **av)
 	return (0);
 }
 
+void stagger_start(int id, int philo_count)
+{
+	int mod;
+	int offset;
+
+	mod = 0;
+	offset = 0;
+
+	if (philo_count <= 1)
+		mod = 0;
+	else if (philo_count > 1 && philo_count <= 5)
+		mod = id % philo_count;
+	else
+		mod = id % 5;
+
+	offset = mod * 50;
+	usleep(offset * 1000); // Convert to microseconds
+}
+
+// int	chk_ate_or_dead(t_vars *vars)
+// {
+// 	int		i;
+// 	long	curr_timestamp;
+
+// 	i = 0;
+// 	curr_timestamp = curr_time();
+// 	while (i < vars->head_count)
+// 	{
+// 		pthread_mutex_lock(&vars->atropos);
+// 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
+// 		{
+// 			vars->is_dead = 1;
+// 			pthread_mutex_unlock(&vars->atropos);
+// 			print_status(DIED, vars->sophoi[i]);
+// 			return (1);
+// 		}
+// 		pthread_mutex_unlock(&vars->atropos);
+// 		if (vars->max_meals != -1)
+// 		{
+// 			pthread_mutex_lock(&vars->hestia);
+// 			if (vars->sophoi[i]->meals_eaten < vars->max_meals)
+// 				vars->is_done = 0;
+// 			pthread_mutex_unlock(&vars->hestia);
+// 		}
+// 		i++;
+// 	}
+// 	return (0);
+// }
 int	chk_ate_or_dead(t_vars *vars)
 {
 	int		i;
 	long	curr_timestamp;
+	int		all_done;
 
 	i = 0;
 	curr_timestamp = curr_time();
+	all_done = 1; // Start assuming all are done
 	while (i < vars->head_count)
 	{
 		pthread_mutex_lock(&vars->atropos);
 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
 		{
 			vars->is_dead = 1;
+			pthread_mutex_unlock(&vars->atropos); // Unlock before print_status
 			print_status(DIED, vars->sophoi[i]);
-			pthread_mutex_unlock(&vars->atropos);
 			return (1);
 		}
 		pthread_mutex_unlock(&vars->atropos);
+		// Improved meal counting logic
 		if (vars->max_meals != -1)
 		{
 			pthread_mutex_lock(&vars->hestia);
 			if (vars->sophoi[i]->meals_eaten < vars->max_meals)
-				vars->is_done = 0;
+				all_done = 0; // At least one philosopher hasn't finished
 			pthread_mutex_unlock(&vars->hestia);
 		}
 		i++;
 	}
+	vars->is_done = all_done;
 	return (0);
 }
 

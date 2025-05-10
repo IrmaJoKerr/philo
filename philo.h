@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/10 04:06:04 by huidris          ###   ########.fr       */
+/*   Updated: 2025/05/10 17:10:11 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ void	print_status(int id, t_philo *philo);
 
 long	curr_time(void);
 int		digits_valid(int ac, char **av);
+void	stagger_start(int id, int philo_count);
 int		chk_ate_or_dead(t_vars *vars);
 void	*run_argus(void *arg);
 // int		philo_eaten_chk(t_vars *vars, int index);
@@ -109,7 +110,7 @@ void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
 void	release_forks(t_philo *philo);
 // void	grab_forks(t_philo *philo);
 int		grab_forks(t_philo *philo);
-void	release_forks(t_philo *philo);
+// void	release_forks(t_philo *philo);
 void	eat_start(t_philo *philo);
 void	zzz_start(t_philo *philo);
 
