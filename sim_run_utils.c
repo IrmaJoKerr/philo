@@ -6,11 +6,40 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:43:30 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/10 17:14:25 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/13 01:14:37 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+void	precise_usleep(int ms)
+{
+	struct timeval	start;
+	struct timeval	current;
+	long			elapsed;
+
+	gettimeofday(&start, 0);
+	while (1)
+	{
+		gettimeofday(&current, 0);
+		elapsed = (current.tv_sec - start.tv_sec) * 1000;
+		elapsed += (current.tv_usec - start.tv_usec) / 1000;
+		if (elapsed >= ms)
+			break ;
+		usleep(100); // sleep 100 microseconds to reduce CPU
+	}
+}
+
+long	get_elapsed_time_ms(struct timeval *start)
+{
+	struct timeval	current;
+	long			elapsed;
+
+	gettimeofday(&current, 0);
+	elapsed = (current.tv_sec - start->tv_sec) * 1000;
+	elapsed += (current.tv_usec - start->tv_usec) / 1000;
+	return (elapsed);
+}
 
 long	curr_time(void)
 {
@@ -40,94 +69,107 @@ int	digits_valid(int ac, char **av)
 	return (0);
 }
 
-void stagger_start(int id, int philo_count)
+void	stagger_start(int id, int philo_count, t_philo *philo)
 {
-	int mod;
-	int offset;
+	t_vars	*vars;
+	int		base_delay;
 
-	mod = 0;
-	offset = 0;
-
+	vars = philo->shared_vars;
 	if (philo_count <= 1)
-		mod = 0;
-	else if (philo_count > 1 && philo_count <= 5)
-		mod = id % philo_count;
+		return ;
+	// Calculate adaptive staggering delay based on eat time
+	base_delay = (vars->time_to_eat * 4) / 10;  // 40% of time_to_eat
+	// Add small adjustment for odd philosopher counts
+	if (philo_count % 2 != 0)
+		base_delay = (base_delay * 4) / 3;  // Add 25% more delay
+	// Ensure minimum and maximum reasonable delays
+	if (base_delay < 20)
+		base_delay = 20;  // Minimum 20ms
+	if (base_delay > 200)
+		base_delay = 200;  // Maximum 200ms
+	// Apply staggering to odd philosophers
+	if (id % 2 != 0)
+	{
+		precise_usleep(base_delay);
+		debug_print("Philo %d delayed start (odd ID staggering - %dms)", 
+				   philo->id + 1, base_delay);
+	}
 	else
-		mod = id % 5;
-
-	offset = mod * 50;
-	usleep(offset * 1000); // Convert to microseconds
+	{
+		debug_print("Philo %d immediate start (even ID staggering)", 
+				   philo->id + 1);
+	}
 }
 
-// int	chk_ate_or_dead(t_vars *vars)
-// {
-// 	int		i;
-// 	long	curr_timestamp;
-
-// 	i = 0;
-// 	curr_timestamp = curr_time();
-// 	while (i < vars->head_count)
-// 	{
-// 		pthread_mutex_lock(&vars->atropos);
-// 		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
-// 		{
-// 			vars->is_dead = 1;
-// 			pthread_mutex_unlock(&vars->atropos);
-// 			print_status(DIED, vars->sophoi[i]);
-// 			return (1);
-// 		}
-// 		pthread_mutex_unlock(&vars->atropos);
-// 		if (vars->max_meals != -1)
-// 		{
-// 			pthread_mutex_lock(&vars->hestia);
-// 			if (vars->sophoi[i]->meals_eaten < vars->max_meals)
-// 				vars->is_done = 0;
-// 			pthread_mutex_unlock(&vars->hestia);
-// 		}
-// 		i++;
-// 	}
-// 	return (0);
-// }
-int	chk_ate_or_dead(t_vars *vars)
+int chk_ate_or_dead(t_vars *vars)
 {
 	int		i;
 	long	curr_timestamp;
-	int		all_done;
 
 	i = 0;
 	curr_timestamp = curr_time();
-	all_done = 1; // Start assuming all are done
+	// Set is_done to true initially (assuming all have finished)
+	pthread_mutex_lock(&vars->hestia);
+	vars->is_done = 1;
+	pthread_mutex_unlock(&vars->hestia);
 	while (i < vars->head_count)
 	{
-		pthread_mutex_lock(&vars->atropos);
-		if (vars->sophoi[i]->next_meal_time < curr_timestamp)
-		{
-			vars->is_dead = 1;
-			pthread_mutex_unlock(&vars->atropos); // Unlock before print_status
-			print_status(DIED, vars->sophoi[i]);
+		// Check for death with the check_death flag set to 1
+		if (run_atropos(vars->sophoi[i], curr_timestamp, 1))
 			return (1);
-		}
-		pthread_mutex_unlock(&vars->atropos);
-		// Improved meal counting logic
+		// Check meal completion
 		if (vars->max_meals != -1)
 		{
 			pthread_mutex_lock(&vars->hestia);
 			if (vars->sophoi[i]->meals_eaten < vars->max_meals)
-				all_done = 0; // At least one philosopher hasn't finished
+				vars->is_done = 0;  // Directly modify is_done
 			pthread_mutex_unlock(&vars->hestia);
 		}
 		i++;
 	}
-	vars->is_done = all_done;
 	return (0);
+}
+
+int	run_atropos(t_philo *philo, long curr_timestamp, int check_death)
+{
+	t_vars	*vars;
+	int		is_dead;
+
+	vars = philo->shared_vars;
+	pthread_mutex_lock(&vars->atropos);
+	// Death detection (when check_death is true)
+	if (check_death && !vars->is_dead && philo->next_meal_time < curr_timestamp)
+	{
+		// Mark as dead
+		vars->is_dead = 1;
+		vars->died_philo_id = philo->id;
+		is_dead = 1;
+		// Unlock mutex before printing
+		pthread_mutex_unlock(&vars->atropos);
+		// Announce death
+		print_status(DIED, philo);
+		#ifdef DEBUG
+		debug_print("Death detected and announced by Philo %d", philo->id + 1);
+		#endif
+		return (is_dead);
+	}
+	// Regular death status check
+	is_dead = vars->is_dead;
+	pthread_mutex_unlock(&vars->atropos);
+	#ifdef DEBUG
+	if (is_dead)
+		debug_print("Death detected by Philo %d", philo->id + 1);
+	#endif
+	return (is_dead);
 }
 
 void	*run_argus(void *arg)
 {
 	t_vars	*vars;
+	long	monitor_interval_ms;
 
 	vars = (t_vars *)arg;
-	usleep(300);
+	precise_usleep(5);
 	while (1)
 	{
 		vars->is_done = 1;
@@ -141,37 +183,11 @@ void	*run_argus(void *arg)
 			printf("All philosophers have completed their meals\n");
 			return (NULL);
 		}
-		usleep(500);
+		if (vars->head_count <= 5 && vars->time_to_die < 800)
+			monitor_interval_ms = 1;
+		else
+			monitor_interval_ms = 3;
+		precise_usleep(monitor_interval_ms);
 	}
 	return (NULL);
-}
-
-// int	philo_eaten_chk(t_vars *vars, int index)
-// {
-// 	int	has_eaten;
-
-// 	if (index >= vars->head_count)
-// 		return (0);
-// 	pthread_mutex_lock(&vars->hestia);
-// 	has_eaten = vars->sophoi[index]->meals_eaten > 0;
-// 	pthread_mutex_unlock(&vars->hestia);
-// 	if (has_eaten)
-// 		return (1);
-// 	return (philo_eaten_chk(vars, index + 1));
-// }
-
-int	run_atropos(t_philo *philo)
-{
-	t_vars	*vars;
-	int		is_dead;
-
-	vars = philo->shared_vars;
-	pthread_mutex_lock(&vars->atropos);
-	is_dead = vars->is_dead;
-	if (is_dead)
-	{
-		debug_print("Death detected by Philo %d", philo->id + 1);
-	}
-	pthread_mutex_unlock(&vars->atropos);
-	return (is_dead);
 }

@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/10 17:10:11 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/13 01:12:39 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,8 @@ typedef struct s_vars
 	pthread_mutex_t	atropos;
 	int				is_done;
 	int				is_dead;
-	// int				meals_completed;      // Renamed from meals_complete
+	int				died_philo_id;// ID of philosopher who died (add this)
+	int				death_announced;// Flag to indicate if death has been announced
 	long			start_time;
 	pthread_t		*clotho;
 	pthread_t		argus;
@@ -91,6 +92,8 @@ int		init_cerberus(t_vars *vars);
 int		init_akademia(t_vars *vars, t_philo ***philo);
 
 int		run_lachesis(t_vars *vars, t_philo ***philo);
+int		should_exit_after_meals(t_philo *philo);
+// void	calculate_and_wait_retry_delay(t_philo *philo);
 void	*run_sim(void *arg);
 
 int		print_error(const char *msg);
@@ -98,19 +101,18 @@ void	run_hermes(int id, long time, int n);
 void	print_status(int id, t_philo *philo);
 
 long	curr_time(void);
+void	precise_usleep(int ms);
+long	get_elapsed_time_ms(struct timeval *start);
 int		digits_valid(int ac, char **av);
-void	stagger_start(int id, int philo_count);
+void	stagger_start(int id, int philo_count, t_philo *philo);
 int		chk_ate_or_dead(t_vars *vars);
 void	*run_argus(void *arg);
-// int		philo_eaten_chk(t_vars *vars, int index);
-int		run_atropos(t_philo *philo);
+int		run_atropos(t_philo *philo, long curr_timestamp, int check_death);
 
 void	*solo_philo_case(t_philo *philo);
 void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
 void	release_forks(t_philo *philo);
-// void	grab_forks(t_philo *philo);
 int		grab_forks(t_philo *philo);
-// void	release_forks(t_philo *philo);
 void	eat_start(t_philo *philo);
 void	zzz_start(t_philo *philo);
 

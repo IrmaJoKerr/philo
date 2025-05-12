@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   initialise.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: huidris <huidris@student.42kl.edu.my>      +#+  +:+       +#+        */
+/*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:07 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/10 04:00:28 by huidris          ###   ########.fr       */
+/*   Updated: 2025/05/12 10:55:47 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ int	init_vars(char **av, t_vars *vars)
 	vars->max_meals = -1;
 	vars->is_done = 0;
 	vars->is_dead = 0;
+	vars->died_philo_id = -1;
+	vars->death_announced = 0;
 	if (av[5] != NULL)
 		vars->max_meals = ft_atoi(av[5]);
 	return (0);
