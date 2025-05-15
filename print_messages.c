@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 20:19:42 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/13 01:08:05 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/13 04:59:56 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,18 +44,14 @@ void	print_status(int id, t_philo *philo)
 	vars = philo->shared_vars;
 	if (!vars)
 		return ;
-	// Check if we should print (avoid printing after death except for DIED messages)
 	pthread_mutex_lock(&vars->atropos);
 	should_print = !vars->is_dead || id == DIED;
 	pthread_mutex_unlock(&vars->atropos);
 	if (!should_print)
 		return ;
-	// Convert start_time to timeval struct
 	start_time_val.tv_sec = vars->start_time / 1000;
 	start_time_val.tv_usec = (vars->start_time % 1000) * 1000;
-	// Only lock hermes for the actual printing
 	pthread_mutex_lock(&vars->hermes);
-	// Use get_elapsed_time_ms for more precise timing
 	time = get_elapsed_time_ms(&start_time_val);
 	run_hermes(id, time, philo->id);
 	pthread_mutex_unlock(&vars->hermes);

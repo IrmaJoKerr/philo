@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:34 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/13 01:12:39 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/15 18:06:04 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,6 @@
 # include <pthread.h>
 # include <sys/time.h>
 # include <stdarg.h>
-
-# define DEBUG 1
 
 # define FORK 1
 # define EAT 2
@@ -62,8 +60,6 @@ typedef struct s_vars
 	pthread_mutex_t	atropos;
 	int				is_done;
 	int				is_dead;
-	int				died_philo_id;// ID of philosopher who died (add this)
-	int				death_announced;// Flag to indicate if death has been announced
 	long			start_time;
 	pthread_t		*clotho;
 	pthread_t		argus;
@@ -82,40 +78,47 @@ typedef struct s_philo
 	t_vars	*shared_vars;
 }	t_philo;
 
+/*In cleanup.c*/
 void	clean_skeuos(t_vars *vars);
 int		run_katharsis(t_vars *vars, t_philo ***philo);
 
-void	debug_print(const char *format, ...); //DEBUG
+/*In initialise.c*/
 int		init_vars(char **av, t_vars *vars);
 int		chk_args_and_init(int ac, char **av, t_vars *vars);
 int		init_cerberus(t_vars *vars);
 int		init_akademia(t_vars *vars, t_philo ***philo);
 
+/*In philo.c*/
 int		run_lachesis(t_vars *vars, t_philo ***philo);
-int		should_exit_after_meals(t_philo *philo);
-// void	calculate_and_wait_retry_delay(t_philo *philo);
+int		chk_meal_exit(t_philo *philo);
 void	*run_sim(void *arg);
 
+/*In print_messages.c*/
 int		print_error(const char *msg);
 void	run_hermes(int id, long time, int n);
 void	print_status(int id, t_philo *philo);
 
-long	curr_time(void);
-void	precise_usleep(int ms);
-long	get_elapsed_time_ms(struct timeval *start);
+/*In sim_run_utils.c*/
 int		digits_valid(int ac, char **av);
-void	stagger_start(int id, int philo_count, t_philo *philo);
+void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
 int		chk_ate_or_dead(t_vars *vars);
 void	*run_argus(void *arg);
-int		run_atropos(t_philo *philo, long curr_timestamp, int check_death);
+int		run_atropos(t_philo *philo, long curr_timestamp, int check_mode);
 
-void	*solo_philo_case(t_philo *philo);
-void	set_fork_order(t_philo *philo, int *first_fork, int *second_fork);
+/*In sim_run.c*/
+void	*lonely_sophoi(t_philo *philo);
 void	release_forks(t_philo *philo);
 int		grab_forks(t_philo *philo);
 void	eat_start(t_philo *philo);
 void	zzz_start(t_philo *philo);
 
+/*In timing.c*/
+long	curr_time(void);
+void	better_usleep(int ms);
+long	get_elapsed_time_ms(struct timeval *start);
+void	delay_start(int id, int philo_count, t_philo *philo);
+
+/*In validate.c*/
 int		validate_args(int ac, char **av);
 size_t	ft_strlen(const char *str);
 int		calc(long long res, int sign, const char *str, int i);

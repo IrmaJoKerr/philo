@@ -6,24 +6,11 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:42:07 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/12 10:55:47 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/13 05:58:34 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-void	debug_print(const char *format, ...)
-{
-	va_list	args;
-
-	if (!DEBUG)
-		return ;
-	va_start(args, format);
-	fprintf(stderr, "[DEBUG] ");
-	vfprintf(stderr, format, args);
-	fprintf(stderr, "\n");
-	va_end(args);
-}
 
 int	init_vars(char **av, t_vars *vars)
 {
@@ -34,8 +21,6 @@ int	init_vars(char **av, t_vars *vars)
 	vars->max_meals = -1;
 	vars->is_done = 0;
 	vars->is_dead = 0;
-	vars->died_philo_id = -1;
-	vars->death_announced = 0;
 	if (av[5] != NULL)
 		vars->max_meals = ft_atoi(av[5]);
 	return (0);

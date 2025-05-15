@@ -6,7 +6,7 @@
 #    By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/02/25 00:56:19 by bleow             #+#    #+#              #
-#    Updated: 2025/04/26 20:20:12 by bleow            ###   ########.fr        #
+#    Updated: 2025/05/13 05:56:35 by bleow            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,7 @@ PHILO_FILES = cleanup.c \
 			print_messages.c \
             sim_run_utils.c \
             sim_run.c \
+			timing.c \
             validate.c 
             
 PHILO_SRCS = ./
