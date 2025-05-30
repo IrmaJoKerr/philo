@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/26 14:40:28 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/15 18:06:04 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/29 23:14:05 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,7 @@ void	*run_sim(void *arg)
 	philo = (t_philo *)arg;
 	vars = philo->shared_vars;
 	if (vars->head_count == 1)
-	{
 		return (lonely_sophoi(philo), NULL);
-	}
 	delay_start(philo->id, vars->head_count, philo);
 	while (!run_atropos(philo, 0, 0))
 	{
@@ -59,9 +57,7 @@ void	*run_sim(void *arg)
 		{
 			eat_start(philo);
 			if (chk_meal_exit(philo))
-			{
 				break ;
-			}
 			zzz_start(philo);
 			print_status(THINK, philo);
 		}

@@ -6,7 +6,7 @@
 /*   By: bleow <bleow@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/13 05:31:28 by bleow             #+#    #+#             */
-/*   Updated: 2025/05/13 05:59:51 by bleow            ###   ########.fr       */
+/*   Updated: 2025/05/29 23:24:39 by bleow            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,12 @@ void	delay_start(int id, int philo_count, t_philo *philo)
 	vars = philo->shared_vars;
 	if (philo_count <= 1)
 		return ;
+	if (philo_count == 2)
+	{
+		if (id == 1)
+			better_usleep(1);
+		return ;
+	}
 	base_delay = (vars->time_to_eat * 4) / 10;
 	if (philo_count % 2 != 0)
 		base_delay = (base_delay * 4) / 3;
